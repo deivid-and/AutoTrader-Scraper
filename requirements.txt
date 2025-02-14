@@ -1,1 +1,5 @@
 requests==2.26.0
+playwright #run playwright install 
+playwright-stealth
+setuptools
+fake-useragent
