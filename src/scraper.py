@@ -1,6 +1,6 @@
 import requests
 import json
-from src.config import BASE_URL, HEADERS
+from src.config import BASE_URL, get_dynamic_headers
 
 def fetch_autotrader_data(filters, channel="cars", page=1, sort_by="relevance", search_id="default-search-id"):
     payload = {
@@ -34,7 +34,7 @@ def fetch_autotrader_data(filters, channel="cars", page=1, sort_by="relevance", 
         }
     }
 
-    response = requests.post(BASE_URL, headers=HEADERS, data=json.dumps(payload))
+    response = requests.post(BASE_URL, headers=get_dynamic_headers(), data=json.dumps(payload))
 
     if response.status_code == 200:
         data = response.json()
