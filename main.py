@@ -1,5 +1,18 @@
+import time
+import random
 from src.scraper import fetch_autotrader_data
-from src.notifier import send_telegram_notification
+import os
+
+LOG_FILE = "logs/debug_log.txt"
+
+def log_message(message):
+    """Append a message to the debug log file."""
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+    
+    with open(LOG_FILE, "a") as log_file:
+        log_file.write(message + "\n")
+    print(message)  # Also print it to the console for real-time feedback
 
 def main():
     filters = [
@@ -12,24 +25,23 @@ def main():
         {"filter": "price_search_type", "selected": ["total"]}
     ]
 
-    print("Fetching AutoTrader data...")
-    listings = fetch_autotrader_data(filters)
+    for i in range(10):  
+        log_message(f"\nRequest {i + 1} | Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        result = fetch_autotrader_data(filters)
+        listings_count = result.get("listings_count", 0) if isinstance(result, dict) else 0
+        status_code = result.get("status", "403") if isinstance(result, dict) else "403"
+        
+        log_message(f"Status: {status_code} | Listings Found: {listings_count}")
 
-    if listings:
-        for listing in listings:
-            if not listing:
-                continue
-
-            title = listing.get("title", "N/A")
-            price = listing.get("price", "N/A")
-            location = listing.get("location", listing.get("position", "N/A"))
-            link = f"https://www.autotrader.co.uk{listing.get('fpaLink', '')}"
-
-            message = f"Title: {title}\nPrice: {price}\nLocation: {location}\nLink: {link}\n{'-' * 50}"
-            print(message)
-            send_telegram_notification(message)
-    else:
-        print("No listings found.")
+        if status_code == "403":  
+            log_message("Blocked!")
+            delay = random.uniform(10, 20)
+        else:
+            delay = random.uniform(60, 120)
+        
+        log_message(f"Next request in {int(delay)} seconds...\n")
+        time.sleep(delay)
 
 if __name__ == "__main__":
     main()
